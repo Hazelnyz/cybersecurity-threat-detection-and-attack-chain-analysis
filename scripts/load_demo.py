@@ -1,6 +1,11 @@
 """Demo script to generate synthetic flows, build graph windows, and load into Neo4j."""
 
 import logging
+import sys
+from pathlib import Path
+
+# Ensure repo root is on sys.path
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from config import get_settings
 from data.synthetic import generate_synthetic_flows
