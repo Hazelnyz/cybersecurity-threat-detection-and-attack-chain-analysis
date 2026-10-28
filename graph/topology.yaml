@@ -1,0 +1,389 @@
+# ==============================================================================
+# ThreatGraph Enterprise Topology (Simulation)
+#
+# NOTE: The vulnerability IDs, names, and exploitability scores in this file are
+# ANALYST-ASSIGNED, CVSS-inspired values designed exclusively for SIMULATION and
+# research benchmarking in an academic graph-based threat detection setting.
+# They do NOT represent real-world CVEs or authoritative vulnerability disclosures.
+# Services without explicit vulnerabilities assume the baseline EXPLOIT_FLOOR.
+# ==============================================================================
+
+segments:
+  - internet
+  - dmz
+  - user_lan
+  - server_lan
+  - db_lan
+
+hosts:
+  # Internet / External
+  - id: attacker-ext
+    ip: "203.0.113.50"
+    segment: internet
+    os: "Kali Linux"
+    asset_criticality: 1
+    services:
+      - name: ssh
+        port: 22
+        proto: tcp
+
+  - id: c2-ext
+    ip: "198.51.100.25"
+    segment: internet
+    os: "Linux"
+    asset_criticality: 1
+    services:
+      - name: c2-listener-https
+        port: 443
+        proto: tcp
+      - name: c2-listener-alt
+        port: 8443
+        proto: tcp
+
+  # DMZ
+  - id: web-01
+    ip: "10.0.1.10"
+    segment: dmz
+    os: "Ubuntu 22.04 LTS"
+    asset_criticality: 3
+    services:
+      - name: http
+        port: 80
+        proto: tcp
+        vuln:
+          id: SIM-VULN-HTTP
+          name: Simulated Web App Vulnerability
+          exploitability: 0.85
+      - name: https
+        port: 443
+        proto: tcp
+        vuln:
+          id: SIM-VULN-HTTPS
+          name: Simulated SSL/TLS Web Exploit
+          exploitability: 0.75
+      - name: ssh
+        port: 22
+        proto: tcp
+
+  - id: mail-01
+    ip: "10.0.1.11"
+    segment: dmz
+    os: "Debian 12"
+    asset_criticality: 3
+    services:
+      - name: smtp
+        port: 25
+        proto: tcp
+        vuln:
+          id: SIM-VULN-SMTP
+          name: Simulated Mail Server Exploit
+          exploitability: 0.60
+      - name: imaps
+        port: 993
+        proto: tcp
+      - name: ssh
+        port: 22
+        proto: tcp
+
+  - id: dns-01
+    ip: "10.0.1.53"
+    segment: dmz
+    os: "Ubuntu 22.04 LTS"
+    asset_criticality: 3
+    services:
+      - name: dns-udp
+        port: 53
+        proto: udp
+      - name: dns-tcp
+        port: 53
+        proto: tcp
+      - name: ssh
+        port: 22
+        proto: tcp
+
+  # Server LAN
+  - id: app-01
+    ip: "10.0.2.10"
+    segment: server_lan
+    os: "Ubuntu 22.04 LTS"
+    asset_criticality: 4
+    services:
+      - name: app-api
+        port: 8080
+        proto: tcp
+        vuln:
+          id: SIM-VULN-LOG4J
+          name: Simulated Remote Code Execution
+          exploitability: 0.90
+      - name: winrm
+        port: 5985
+        proto: tcp
+        vuln:
+          id: SIM-VULN-WINRM
+          name: Simulated WinRM Command Execution
+          exploitability: 0.65
+      - name: ssh
+        port: 22
+        proto: tcp
+
+  - id: file-01
+    ip: "10.0.2.60"
+    segment: server_lan
+    os: "Windows Server 2022"
+    asset_criticality: 4
+    services:
+      - name: smb
+        port: 445
+        proto: tcp
+        vuln:
+          id: SIM-VULN-SMB
+          name: Simulated SMB Exploit
+          exploitability: 0.80
+      - name: rdp
+        port: 3389
+        proto: tcp
+        vuln:
+          id: SIM-VULN-RDP
+          name: Simulated RDP Remote Access
+          exploitability: 0.70
+
+  - id: dc-01
+    ip: "10.0.2.100"
+    segment: server_lan
+    os: "Windows Server 2022"
+    asset_criticality: 5
+    services:
+      - name: kerberos
+        port: 88
+        proto: tcp
+      - name: ldap
+        port: 389
+        proto: tcp
+        vuln:
+          id: SIM-VULN-LDAP
+          name: Simulated Domain Elevation Exploit
+          exploitability: 0.95
+      - name: smb
+        port: 445
+        proto: tcp
+      - name: rdp
+        port: 3389
+        proto: tcp
+
+  # DB LAN
+  - id: db-01
+    ip: "10.0.2.50"
+    segment: db_lan
+    os: "Red Hat Enterprise Linux 9"
+    asset_criticality: 5
+    services:
+      - name: mysql
+        port: 3306
+        proto: tcp
+        vuln:
+          id: SIM-VULN-SQL
+          name: Simulated SQL Auth Bypass
+          exploitability: 0.75
+      - name: ssh
+        port: 22
+        proto: tcp
+
+  - id: db-02
+    ip: "10.0.2.51"
+    segment: db_lan
+    os: "Red Hat Enterprise Linux 9"
+    asset_criticality: 4
+    services:
+      - name: postgresql
+        port: 5432
+        proto: tcp
+      - name: ssh
+        port: 22
+        proto: tcp
+
+  - id: backup-01
+    ip: "10.0.2.70"
+    segment: db_lan
+    os: "Ubuntu 22.04 LTS"
+    asset_criticality: 4
+    services:
+      - name: rsync
+        port: 873
+        proto: tcp
+      - name: ssh
+        port: 22
+        proto: tcp
+
+  # User LAN
+  - id: admin-ws-01
+    ip: "10.0.3.101"
+    segment: user_lan
+    os: "Windows 11 Pro"
+    asset_criticality: 4
+    services:
+      - name: rdp
+        port: 3389
+        proto: tcp
+        vuln:
+          id: SIM-VULN-ADMIN-RDP
+          name: Simulated Admin Session Hijack
+          exploitability: 0.50
+      - name: smb
+        port: 445
+        proto: tcp
+      - name: winrm
+        port: 5985
+        proto: tcp
+
+  - id: ws-01
+    ip: "10.0.3.102"
+    segment: user_lan
+    os: "Windows 11 Enterprise"
+    asset_criticality: 2
+    services:
+      - name: smb
+        port: 445
+        proto: tcp
+      - name: rdp
+        port: 3389
+        proto: tcp
+
+  - id: ws-02
+    ip: "10.0.3.103"
+    segment: user_lan
+    os: "Windows 11 Enterprise"
+    asset_criticality: 2
+    services:
+      - name: smb
+        port: 445
+        proto: tcp
+
+  - id: ws-03
+    ip: "10.0.3.104"
+    segment: user_lan
+    os: "Windows 11 Enterprise"
+    asset_criticality: 2
+    services:
+      - name: smb
+        port: 445
+        proto: tcp
+
+  - id: ws-04
+    ip: "10.0.3.105"
+    segment: user_lan
+    os: "Windows 11 Enterprise"
+    asset_criticality: 2
+    services:
+      - name: smb
+        port: 445
+        proto: tcp
+
+  - id: ws-05
+    ip: "10.0.3.106"
+    segment: user_lan
+    os: "Windows 11 Enterprise"
+    asset_criticality: 2
+    services:
+      - name: smb
+        port: 445
+        proto: tcp
+
+  - id: ws-06
+    ip: "10.0.3.107"
+    segment: user_lan
+    os: "Windows 11 Enterprise"
+    asset_criticality: 2
+    services:
+      - name: smb
+        port: 445
+        proto: tcp
+
+firewall_rules:
+  # Inbound from Internet to DMZ
+  - from_segment: internet
+    to_segment: dmz
+    ports: [80, 443]
+    proto: tcp
+    action: allow
+  - from_segment: internet
+    to_segment: dmz
+    ports: [25]
+    proto: tcp
+    action: allow
+  - from_segment: internet
+    to_segment: dmz
+    ports: [53]
+    proto: udp
+    action: allow
+
+  # DMZ to Internal Segments
+  - from_segment: dmz
+    to_segment: server_lan
+    ports: [445, 3389, 5985, 8080, 22]
+    proto: tcp
+    action: allow
+  - from_segment: dmz
+    to_segment: user_lan
+    ports: [445, 3389, 5985]
+    proto: tcp
+    action: allow
+
+  # User LAN to DMZ and Server LAN
+  - from_segment: user_lan
+    to_segment: dmz
+    ports: [80, 443, 53]
+    proto: tcp
+    action: allow
+  - from_segment: user_lan
+    to_segment: dmz
+    ports: [53]
+    proto: udp
+    action: allow
+  - from_segment: user_lan
+    to_segment: server_lan
+    ports: [88, 389, 445, 3389, 5985, 8080]
+    proto: tcp
+    action: allow
+  - from_segment: user_lan
+    to_segment: server_lan
+    ports: [88, 389]
+    proto: udp
+    action: allow
+
+  # Server LAN to DB LAN
+  - from_segment: server_lan
+    to_segment: db_lan
+    ports: [3306, 5432, 873, 22]
+    proto: tcp
+    action: allow
+
+  # Outbound to Internet
+  - from_segment: db_lan
+    to_segment: internet
+    ports: [443, 8443]
+    proto: tcp
+    action: allow
+  - from_segment: server_lan
+    to_segment: internet
+    ports: [443, 8443]
+    proto: tcp
+    action: allow
+  - from_segment: dmz
+    to_segment: internet
+    ports: [80, 443]
+    proto: tcp
+    action: allow
+  - from_segment: user_lan
+    to_segment: internet
+    ports: [80, 443]
+    proto: tcp
+    action: allow
+
+crown_jewels:
+  - dc-01
+  - db-01
+
+entry_points:
+  - web-01
+  - mail-01
+

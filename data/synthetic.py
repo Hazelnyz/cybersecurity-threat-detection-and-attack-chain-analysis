@@ -11,42 +11,40 @@ from data.schema import coerce_flows, make_dup_key, validate_flows
 def _get_default_hosts() -> tuple[
     list[dict[str, str]], list[dict[str, str]], list[dict[str, str]]
 ]:
-    """Provide default set of ~18 internal hosts plus 2 external hosts.
+    """Provide default set of ~18 enterprise hosts plus 2 external hosts.
 
     Returns:
         tuple containing (external_hosts, dmz_hosts, internal_hosts).
     """
     external_hosts = [
-        {"id": "ext_attacker", "ip": "203.0.113.50", "segment": "external"},
-        {"id": "ext_c2", "ip": "198.51.100.25", "segment": "external"},
+        {"id": "attacker-ext", "ip": "203.0.113.50", "segment": "internet"},
+        {"id": "c2-ext", "ip": "198.51.100.25", "segment": "internet"},
     ]
 
     dmz_hosts = [
-        {"id": "dmz_web_1", "ip": "10.0.1.10", "segment": "dmz"},
-        {"id": "dmz_web_2", "ip": "10.0.1.11", "segment": "dmz"},
-        {"id": "dmz_dns", "ip": "10.0.1.53", "segment": "dmz"},
+        {"id": "web-01", "ip": "10.0.1.10", "segment": "dmz"},
+        {"id": "mail-01", "ip": "10.0.1.11", "segment": "dmz"},
+        {"id": "dns-01", "ip": "10.0.1.53", "segment": "dmz"},
     ]
 
     internal_hosts = [
-        # Internal servers
-        {"id": "app_srv_1", "ip": "10.0.2.10", "segment": "internal"},
-        {"id": "app_srv_2", "ip": "10.0.2.11", "segment": "internal"},
-        {"id": "db_srv_1", "ip": "10.0.2.50", "segment": "internal"},
-        {"id": "db_srv_2", "ip": "10.0.2.51", "segment": "internal"},
-        {"id": "file_srv_1", "ip": "10.0.2.60", "segment": "internal"},
-        {"id": "backup_srv_1", "ip": "10.0.2.70", "segment": "internal"},
-        {"id": "dc_srv_1", "ip": "10.0.2.100", "segment": "internal"},
-        # Internal workstations
-        {"id": "ws_admin_1", "ip": "10.0.3.101", "segment": "internal"},
-        {"id": "ws_user_1", "ip": "10.0.3.102", "segment": "internal"},
-        {"id": "ws_user_2", "ip": "10.0.3.103", "segment": "internal"},
-        {"id": "ws_user_3", "ip": "10.0.3.104", "segment": "internal"},
-        {"id": "ws_user_4", "ip": "10.0.3.105", "segment": "internal"},
-        {"id": "ws_user_5", "ip": "10.0.3.106", "segment": "internal"},
-        {"id": "ws_user_6", "ip": "10.0.3.107", "segment": "internal"},
-        {"id": "ws_user_7", "ip": "10.0.3.108", "segment": "internal"},
+        # Server LAN
+        {"id": "app-01", "ip": "10.0.2.10", "segment": "server_lan"},
+        {"id": "file-01", "ip": "10.0.2.60", "segment": "server_lan"},
+        {"id": "dc-01", "ip": "10.0.2.100", "segment": "server_lan"},
+        # DB LAN
+        {"id": "db-01", "ip": "10.0.2.50", "segment": "db_lan"},
+        {"id": "db-02", "ip": "10.0.2.51", "segment": "db_lan"},
+        {"id": "backup-01", "ip": "10.0.2.70", "segment": "db_lan"},
+        # User LAN
+        {"id": "admin-ws-01", "ip": "10.0.3.101", "segment": "user_lan"},
+        {"id": "ws-01", "ip": "10.0.3.102", "segment": "user_lan"},
+        {"id": "ws-02", "ip": "10.0.3.103", "segment": "user_lan"},
+        {"id": "ws-03", "ip": "10.0.3.104", "segment": "user_lan"},
+        {"id": "ws-04", "ip": "10.0.3.105", "segment": "user_lan"},
+        {"id": "ws-05", "ip": "10.0.3.106", "segment": "user_lan"},
+        {"id": "ws-06", "ip": "10.0.3.107", "segment": "user_lan"},
     ]
-    # Total internal = 3 (dmz) + 7 (servers) + 8 (workstations) = 18 internal IPs, plus 2 external
     return external_hosts, dmz_hosts, internal_hosts
 
 
@@ -65,7 +63,7 @@ def generate_synthetic_flows(
     Args:
         seed: Random seed for deterministic flow generation.
         n_benign: Number of background benign flows to generate.
-        hosts: Optional topology host records. If None, uses default 20-host network.
+        hosts: Optional topology host records. If None, uses default enterprise network.
 
     Returns:
         pd.DataFrame: Validated, coerced, and sorted DataFrame of synthetic flows.
@@ -75,7 +73,7 @@ def generate_synthetic_flows(
     if hosts is not None and len(hosts) > 0:
         ext = [
             h for h in hosts
-            if h.get("segment") == "external" or "ext" in h.get("id", "").lower()
+            if h.get("segment") in ("internet", "external") or "ext" in h.get("id", "").lower()
         ]
         dmz = [
             h for h in hosts
@@ -86,12 +84,12 @@ def generate_synthetic_flows(
         # Fallbacks if segments are missing
         if not ext:
             ext = [
-                {"id": "ext_attacker", "ip": "203.0.113.50", "segment": "external"},
-                {"id": "ext_c2", "ip": "198.51.100.25", "segment": "external"},
+                {"id": "attacker-ext", "ip": "203.0.113.50", "segment": "internet"},
+                {"id": "c2-ext", "ip": "198.51.100.25", "segment": "internet"},
             ]
         if not dmz:
             dmz = [intl.pop(0)] if intl else [
-                {"id": "dmz_web_1", "ip": "10.0.1.10", "segment": "dmz"}
+                {"id": "web-01", "ip": "10.0.1.10", "segment": "dmz"}
             ]
         if not intl:
             intl = dmz
@@ -103,24 +101,40 @@ def generate_synthetic_flows(
 
     attacker_ip = ext[0]["ip"]
     c2_ip = ext[1]["ip"] if len(ext) > 1 else ext[0]["ip"]
-    dmz_web_ip = dmz[0]["ip"]
+    dmz_web_ip = next((h["ip"] for h in dmz if "web" in h.get("id", "").lower()), dmz[0]["ip"])
 
-    # Candidate internal targets for lateral movement / exfiltration
-    db_ip = next((h["ip"] for h in intl if "db" in h.get("id", "").lower()), intl[0]["ip"])
+    # Target selections
+    db_ip = next((h["ip"] for h in intl if "db-01" in h.get("id", "").lower()), intl[0]["ip"])
     file_ip = next(
-        (
-            h["ip"] for h in intl
-            if "file" in h.get("id", "").lower() or "backup" in h.get("id", "").lower()
-        ),
+        (h["ip"] for h in intl if "file" in h.get("id", "").lower()),
         intl[-1]["ip"],
     )
     admin_ws_ip = next(
-        (h["ip"] for h in intl if "admin" in h.get("id", "").lower()), intl[0]["ip"]
+        (h["ip"] for h in intl if "admin" in h.get("id", "").lower()),
+        intl[0]["ip"],
     )
     backup_srv_ip = next(
-        (h["ip"] for h in intl if "backup" in h.get("id", "").lower()), file_ip
+        (h["ip"] for h in intl if "backup" in h.get("id", "").lower()),
+        file_ip,
     )
     dns_ip = next((h["ip"] for h in dmz if "dns" in h.get("id", "").lower()), dmz[-1]["ip"])
+
+    # Lateral movement targets: user_lan and server_lan hosts
+    lateral_candidates = [
+        h["ip"] for h in intl
+        if h.get("segment") in ("server_lan", "user_lan")
+        or any(k in h.get("id", "").lower() for k in ("app", "file", "dc", "admin", "ws"))
+    ]
+    if not lateral_candidates:
+        lateral_candidates = [file_ip, admin_ws_ip]
+
+    # Exfiltration sources: db-01 or file-01
+    exfil_sources = [
+        h["ip"] for h in intl
+        if any(target in h.get("id", "").lower() for target in ("db-01", "file-01", "db", "file"))
+    ]
+    if not exfil_sources:
+        exfil_sources = [db_ip, file_ip]
 
     # -------------------------------------------------------------
     # 1. Multi-Stage Attack Flows (Strict temporal order with realistic gaps)
@@ -133,7 +147,7 @@ def generate_synthetic_flows(
     # Stage 4: Exfiltration           [5400s .. 6300s]
     # -------------------------------------------------------------
 
-    # Stage 1: Recon (Portscan)
+    # Stage 1: Recon (Portscan against web-01)
     n_recon = 120
     recon_ports = [
         21, 22, 23, 25, 53, 80, 110, 135, 139, 143, 443, 445, 993, 995,
@@ -160,7 +174,7 @@ def generate_synthetic_flows(
             "attack_stage": "recon",
         })
 
-    # Stage 2: Initial Access (Web Exploit)
+    # Stage 2: Initial Access (Web Exploit against web-01)
     n_exploit = 35
     exploit_times = np.sort(rng.uniform(1800.0, 2400.0, size=n_exploit))
     for t in exploit_times:
@@ -183,12 +197,11 @@ def generate_synthetic_flows(
             "attack_stage": "initial_access",
         })
 
-    # Stage 3: Lateral Movement
+    # Stage 3: Lateral Movement (from web-01 to user_lan / server_lan hosts)
     n_lateral = 30
     lateral_times = np.sort(rng.uniform(3600.0, 4500.0, size=n_lateral))
-    internal_targets = [db_ip, file_ip, admin_ws_ip]
     for t in lateral_times:
-        target_ip = str(rng.choice(internal_targets))
+        target_ip = str(rng.choice(lateral_candidates))
         port = int(rng.choice([445, 3389, 5985]))
         flows.append({
             "ts_start": base_time + pd.Timedelta(seconds=float(t)),
@@ -208,12 +221,12 @@ def generate_synthetic_flows(
             "attack_stage": "lateral_movement",
         })
 
-    # Stage 4: Exfiltration
+    # Stage 4: Exfiltration (from db-01 / file-01 to c2-ext)
     n_exfil = 15
     exfil_times = np.sort(rng.uniform(5400.0, 6300.0, size=n_exfil))
     for t in exfil_times:
         port = int(rng.choice([443, 8443]))
-        src_srv = str(rng.choice([db_ip, file_ip]))
+        src_srv = str(rng.choice(exfil_sources))
         flows.append({
             "ts_start": base_time + pd.Timedelta(seconds=float(t)),
             "duration_s": round(float(rng.uniform(15.0, 80.0)), 6),
@@ -285,7 +298,10 @@ def generate_synthetic_flows(
     # 3. Benign Background Traffic (n_benign flows across 2 hours)
     # -------------------------------------------------------------
     all_internal_ips = [h["ip"] for h in intl]
-    workstation_ips = [h["ip"] for h in intl if "ws" in h.get("id", "").lower()]
+    workstation_ips = [
+        h["ip"] for h in intl
+        if h.get("segment") == "user_lan" or "ws" in h.get("id", "").lower()
+    ]
     if not workstation_ips:
         workstation_ips = all_internal_ips
 
@@ -457,4 +473,3 @@ def generate_synthetic_flows(
     validate_flows(coerced)
 
     return coerced
-
