@@ -285,15 +285,31 @@ def test_edge_label_aggregation_rules() -> None:
 
 
 def test_feature_columns_contain_no_identifiers() -> None:
-    """Ensure FEATURE_COLUMNS_* exclude all identifier, IP, and timestamp columns."""
-    forbidden = ["ip", "node_idx", "window_id", "flow_id", "timestamp", "ts", "src_ip", "dst_ip"]
+    """Ensure FEATURE_COLUMNS_* exclude all identifier, IP, timestamp, and label-derived columns."""
+    forbidden_identifiers = [
+        "ip",
+        "node_idx",
+        "window_id",
+        "flow_id",
+        "timestamp",
+        "ts",
+        "src_ip",
+        "dst_ip",
+    ]
+    forbidden_labels = [
+        "label_binary",
+        "label_family",
+        "attack_stage",
+        "n_flows_attack",
+    ]
+    all_forbidden = set(forbidden_identifiers).union(set(forbidden_labels))
 
     for col in FEATURE_COLUMNS_HOST:
-        assert col not in forbidden, f"Host feature '{col}' is a forbidden identifier"
+        assert col not in all_forbidden, f"Host feature '{col}' is forbidden (identifier or label)"
         assert not col.endswith("_ip"), f"Host feature '{col}' resembles an IP address"
 
     for col in FEATURE_COLUMNS_EDGE:
-        assert col not in forbidden, f"Edge feature '{col}' is a forbidden identifier"
+        assert col not in all_forbidden, f"Edge feature '{col}' is forbidden (identifier or label)"
         assert not col.endswith("_ip"), f"Edge feature '{col}' resembles an IP address"
 
 

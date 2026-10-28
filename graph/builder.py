@@ -34,7 +34,6 @@ FEATURE_COLUMNS_EDGE: list[str] = [
     "mean_duration_s",
     "max_duration_s",
     "distinct_src_ports",
-    "n_flows_attack",
 ]
 
 
