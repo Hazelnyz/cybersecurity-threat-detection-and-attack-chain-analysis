@@ -1,0 +1,10 @@
+ Flow ID, Source IP, Source Port, Destination IP, Destination Port, Protocol, Timestamp, Flow Duration, Total Fwd Packets, Total Backward Packets, Total Length of Fwd Packets, Total Length of Bwd Packets, Label
+192.168.10.3-192.168.10.50-389-49152-6, 192.168.10.3, 389, 192.168.10.50, 49152, 6, 07/07/2017 8:30:00, 1000000, 10, 12, 1500, 3000, BENIGN
+192.168.10.3-192.168.10.50-80-49153-6, 192.168.10.3, 80, 192.168.10.50, 49153, 6, 07/07/2017 8:31:00, 2000000, 5, 8, 800, 1200, BENIGN
+ Flow ID, Source IP, Source Port, Destination IP, Destination Port, Protocol, Timestamp, Flow Duration, Total Fwd Packets, Total Backward Packets, Total Length of Fwd Packets, Total Length of Bwd Packets, Label
+203.0.113.50-10.0.1.10-443-40001-6, 203.0.113.50, 40001, 10.0.1.10, 443, 6, 07/07/2017 8:35:00, 500000, 20, 15, 4500, 6000, PortScan
+203.0.113.50-10.0.1.10-80-40002-6, 203.0.113.50, 40002, 10.0.1.10, 80, 6, 07/07/2017 8:40:00, 3000000, 50, 40, 15000, 20000, DDoS
+192.168.10.14-192.168.10.50-53-50000-17, 192.168.10.14, 50000, 192.168.10.50, 53, 17, 07/07/2017 8:45:00, 50000, 2, 2, 120, 240, BENIGN
+192.168.10.15-192.168.10.50-22-50001-6, 192.168.10.15, 50001, 192.168.10.50, 22, 6, 07/07/2017 8:50:00, 100000, 8, 6, 1000, 800, FTP-Patator
+192.168.10.16-192.168.10.50-80-50002-6, 192.168.10.16, 50002, 192.168.10.50, 80, 6, 07/07/2017 8:55:00, Infinity, 1, 0, 100, 0, BENIGN
+

@@ -1,0 +1,4 @@
+ Destination Port, Flow Duration, Total Fwd Packets, Total Backward Packets, Total Length of Fwd Packets, Label
+80, 100000, 5, 5, 500, BENIGN
+443, 200000, 10, 10, 1000, PortScan
+

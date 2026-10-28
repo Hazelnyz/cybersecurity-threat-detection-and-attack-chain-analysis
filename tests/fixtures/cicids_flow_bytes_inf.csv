@@ -1,0 +1,3 @@
+ Flow ID, Source IP, Source Port, Destination IP, Destination Port, Protocol, Timestamp, Flow Duration, Total Fwd Packets, Total Backward Packets, Total Length of Fwd Packets, Total Length of Bwd Packets, Flow Bytes/s, Flow Packets/s, Label
+192.168.10.3-192.168.10.50-80-49152-6, 192.168.10.3, 80, 192.168.10.50, 49152, 6, 07/07/2017 8:30:00, 1000000, 10, 12, 1500, 3000, Infinity, 22.0, BENIGN
+
